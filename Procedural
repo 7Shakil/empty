@@ -1,1 +1,226 @@
+import java.util.Scanner;
+import java.io.*;
+
+class Question 
+{
+    String text;
+    String answer;
+}
+
+class QuizGame 
+{
+    public static String getQuestionText(Question question) 
+    {
+        return question.text;
+    }
+
+    public static String getQuestionAnswer(Question question) 
+    {
+        return question.answer;
+    }
+
+
+
+    // This is the create method
+    public static Question createQuestion(String text, String answer) 
+    {
+        Question question = new Question();
+        question.text = text;
+        question.answer = answer;
+        return question;
+    }
+
+    public static void main(String[] args) 
+    {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("Do you want to load questions from a file? (yes/no)");
+        String load = scanner.nextLine().toLowerCase();
+
+        if (load.equals("yes")) 
+        {
+            System.out.println("Enter the file name: ");
+            String fileName = scanner.nextLine();
+            try 
+                {
+                loadQuestion(fileName);
+            }
+            catch (IOException e) 
+                {
+                System.out.println("An error occurred while loading questions: " );
+            }
+        }
+        else 
+        {
+            generalKnowledgeQuiz();
+        }
+    }
+
+    // This is used to load the questions from a different file
+    public static void loadQuestion(String fileName) throws IOException 
+    {
+        System.out.println();
+        rules();
+        
+        int[] playerScores = new int[3];
+
+        
+        PrintWriter writer = new PrintWriter(new FileWriter("scores.txt"));
+
+        for (int i = 0; i < 3; i++) 
+        {
+            System.out.println("Player " + (i + 1));
+            int totalPoint = 0;
+            int nextPoint = 1;
+
+
+            BufferedReader fileQuestion = new BufferedReader(new FileReader(fileName));
+
+            for (int j = 0; j < 4; j++) 
+            {
+                Question question = new Question();
+                question.text = fileQuestion.readLine();
+                question.answer = fileQuestion.readLine();
+                System.out.println();
+
+                totalPoint = askQuestion(totalPoint, nextPoint, question, playerScores);
+                nextPoint = nextPoint * 2;
+            }
+
+            fileQuestion.close();
+
+            playerScores[i] = totalPoint;
+            System.out.println("Player " + (i + 1) + " scored " + totalPoint + " points.\n");
+
+            
+            writer.println("Player " + (i + 1) + " scored " + totalPoint + " points.");
+        }
+
+        writer.close();
+    }
+
+    // This is used to ask the questions to the different playes
+    public static void generalKnowledgeQuiz() 
+    {
+        rules();
+
+        
+        int[] playerScores = new int[3];
+
+        for (int i = 0; i < 3; i++) 
+        {
+            System.out.println("Player " + (i + 1));
+            int totalPoint = 0;
+            int nextPoint = 1;
+            final int numberOfQuestions = 4; // The number of questions
+
+            for (int j = 0; j < numberOfQuestions; j++) 
+            {
+                totalPoint = askQuestion(totalPoint, nextPoint, createQuestion(getQuestionText(j + 1), getQuestionAnswer(j + 1)), playerScores);
+                nextPoint = nextPoint * 2;
+            }
+
+            playerScores[i] = totalPoint; // This updates player's score
+            System.out.println("Player " + (i + 1) + " scored " + totalPoint + " points.\n");
+        }
+    }
+
+    // This would print out the rules
+    public static void rules() 
+    {
+        System.out.println("The rules of this quiz are:");
+        System.out.println("1) First question will be worth 1 point, points double for every right question in a streak.");
+        System.out.println("2) If the user loses their streak, the points will reset to 1 point.");
+        System.out.println("3) The first question is worth 1 point, and subsequent questions double in value.\n");
+    }
+
+    // This is used to ask questions and print if they are right or not
+    public static int askQuestion(int totalPoint, int nextPoint, Question currentQuestion, int[] playerScores) 
+    {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("Question: " + getQuestionText(currentQuestion));
+        String response = scanner.nextLine();
+        displayResponse(response);
+
+        if (rightWrong(getQuestionAnswer(currentQuestion), response)) 
+        {
+            System.out.println("You have answered the question correctly.");
+            System.out.println("You have gained " + nextPoint + " points.");
+            totalPoint += nextPoint;
+            System.out.println("Total points so far: " + totalPoint);
+            System.out.println("The next question is worth " + nextPoint * 2 + " points.");
+        } 
+        else 
+        {
+            System.out.println("You have answered the question incorrectly.");
+            System.out.println("The correct answer is: " + getQuestionAnswer(currentQuestion));
+            System.out.println("You have gained 0 points.");
+            nextPoint = 1;
+            System.out.println("Total points so far: " + totalPoint);
+            System.out.println("The next question is worth " + nextPoint + " points.");
+        }
+
+        return totalPoint;
+    }
+
+    // This would print what the user has chosen
+    public static void displayResponse(String response) 
+    {
+        System.out.println();
+        System.out.println("You chose " + response);
+    }
+
+    // This would return whether the users answer matches the actual answer
+    public static boolean rightWrong(String a, String response) 
+    {
+        return response.equals(a);
+    }
+
+    // This would return the question
+    public static String getQuestionText(int questionNum) 
+    {
+        if (questionNum == 1) 
+        {
+            return "When did World War 2 end?";
+        } 
+        else if (questionNum == 2) 
+        {
+            return "What is the capital of France?";
+        }
+        else if (questionNum == 3) 
+        {
+            return "What force keeps planets in orbit around the sun?";
+        }
+        else if (questionNum == 4) 
+        {
+            return "Who painted the Mona Lisa?";
+        }
+        return "";
+    }
+
+    // This would return the answer
+    public static String getQuestionAnswer(int questionNum) 
+    {
+        if (questionNum == 1) 
+        {
+            return "1945";
+        } 
+        else if (questionNum == 2) 
+        {
+            return "Paris";
+        } 
+        else if (questionNum == 3) 
+        {
+            return "Gravity";
+        }
+        else if (questionNum == 4) 
+        {
+            return "Leonardo da Vinci";
+        }
+        return "";
+    }
+}
+
+QuizGame.main(null);
 
